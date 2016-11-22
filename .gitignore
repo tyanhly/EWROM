@@ -1,2 +1,10 @@
-/setup
-/SparkWordCountExample/target
+setup
+!SparkWordCountExample/project
+SparkWordCountExample/project/*
+!SparkWordCountExample/project/plugins.sbt
+SparkWordCountExample/target
+SparkWordCountExample/.classpath
+SparkWordCountExample/.project
+SparkWordCountExample/.settings
+ubuntu-zesty-17.04-cloudimg-console.log
+

@@ -1,0 +1,1 @@
+spark-submit --class "RGraphXApp" --master local[4] target/scala-2.11/spark-word-count-example_2.11-1.0.jar

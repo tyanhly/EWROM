@@ -17,4 +17,4 @@ object SparkWordCountApp {
         println("OK")
         sc.stop()
     }
-} 
+}  

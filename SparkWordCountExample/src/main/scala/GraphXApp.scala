@@ -23,8 +23,7 @@ object GraphXApp {
             Edge(4L, 1L, 1),
             Edge(5L, 2L, 2),
             Edge(5L, 3L, 8),
-            Edge(5L, 6L, 3)
-        )
+            Edge(5L, 6L, 3))
 
         val sc = new SparkContext(new SparkConf().setAppName("GraphXApp"))
         val vertexRDD: RDD[(Long, (String, Int))] =
@@ -34,7 +33,7 @@ object GraphXApp {
             sc.parallelize(edgeArray)
 
         val graph: Graph[(String, Int), Int] = Graph(vertexRDD, edgeRDD)
-        
+
         // Solution 1
         graph.vertices.filter { case (id, (name, age)) => age > 30 }.collect.foreach {
             case (id, (name, age)) => println(s"$name is $age")
@@ -46,6 +45,14 @@ object GraphXApp {
         // Solution 3
         for ((id, (name, age)) <- graph.vertices.filter { case (id, (name, age)) => age > 30 }.collect) {
             println(s"$name is $age")
+        }
+
+        for (triplet <- graph.triplets.collect) {
+            println(s"${triplet.srcAttr._1} likes ${triplet.dstAttr._1}")
+        }
+        
+        for (triplet <- graph.triplets.filter(t => t.attr > 5).collect) {
+            println(s"${triplet.srcAttr._1} loves ${triplet.dstAttr._1}")
         }
         sc.stop()
     }

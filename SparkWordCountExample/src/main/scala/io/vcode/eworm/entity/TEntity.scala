@@ -1,6 +1,8 @@
 package io.vcode.eworm.entity
 
-trait TEntity[TAttr <: TAttribute, TAct <: TAction] extends TBaseEntity{
-    var attributes: Array[TAttr]
-    var actions: Array[TAct]
+trait TEntity[TATTRIBUTE, TACTION]
+     extends TBaseEntity{
+    var name: String = _
+    var attributes: Array[TATTRIBUTE] = _
+    var actions: Array[TACTION] = _
 }

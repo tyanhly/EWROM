@@ -1,9 +1,12 @@
-SETUP_DIR='/vagrant/setup'
-SETUP_SPARK_DIR='/usr/local/spark'
-SETUP_SBT_DIR='/usr/local/sbt'
-SPARK_LINK='http://www.us.apache.org/dist/spark/spark-2.0.2/spark-2.0.2-bin-hadoop2.7.tgz'
-SCALA_LINK='http://downloads.lightbend.com/scala/2.11.8/scala-2.11.8.deb'
-SBT_LINK='https://dl.bintray.com/sbt/native-packages/sbt/0.13.13/sbt-0.13.13.tgz'
+SETUP_DIR_ROOT='/vagrant/setup'
+SETUP_DIR_SPARK='/usr/local/spark'
+SETUP_DIR_SBT='/usr/local/sbt'
+SETUP_DIR_HADOOP='/usr/local/hadoop'
+
+DOWNLOAD_LINK_SPARK='http://www.us.apache.org/dist/spark/spark-2.0.2/spark-2.0.2-bin-hadoop2.7.tgz'
+DOWNLOAD_LINK_SCALA='http://downloads.lightbend.com/scala/2.11.8/scala-2.11.8.deb'
+DOWNLOAD_LINK_SBT='https://dl.bintray.com/sbt/native-packages/sbt/0.13.13/sbt-0.13.13.tgz'
+DOWNLOAD_LINK_HADOOP='http://mirror.downloadvn.com/apache/hadoop/common/stable/hadoop-2.7.3.tar.gz'
 
 ###########################################################################
 # ultility functions
@@ -38,7 +41,7 @@ downloadFile () {
         echo "$f is downloaded"
     else
         echo "Start download $f"
-	wget $f -O $name
+    wget $f -O $name
     fi
 }
 
@@ -58,47 +61,85 @@ setupSofts(){
 
 setupScala(){
     printHeader 'Install scala'
-    downloadFile $SCALA_LINK scala.deb
+    downloadFile $DOWNLOAD_LINK_SCALA scala.deb
     dpkg -i ./scala.deb
     scala -version
 }
 
 setupSpark(){
     printHeader 'Install spark'
-    downloadFile $SPARK_LINK spark.tar.gz
-    mkdir $SETUP_SPARK_DIR 
-    tar -xzf spark.tar.gz -C $SETUP_SPARK_DIR --strip-components 1
+    downloadFile $DOWNLOAD_LINK_SPARK spark.tar.gz
+    mkdir $SETUP_DIR_SPARK 
+    tar -xzf spark.tar.gz -C $SETUP_DIR_SPARK --strip-components 1
 
-    tmpval="$PATH:$SETUP_SPARK_DIR/bin"
+    tmpval="$PATH:$SETUP_DIR_SPARK/bin"
     setupEnvVar 'PATH' $tmpval  
 }
 
 setupSbt(){
     printMsg 'setupSbt';
-    downloadFile $SBT_LINK sbt.tar.gz
-    mkdir $SETUP_SBT_DIR 
-    tar -xzf sbt.tar.gz -C $SETUP_SBT_DIR --strip-components 1
+    downloadFile $DOWNLOAD_LINK_SBT sbt.tar.gz
+    mkdir $SETUP_DIR_SBT 
+    tar -xzf sbt.tar.gz -C $SETUP_DIR_SBT --strip-components 1
 
-    tmpval="$PATH:$SETUP_SBT_DIR/bin"
+    tmpval="$PATH:$SETUP_DIR_SBT/bin"
     setupEnvVar 'PATH' $tmpval
 
+}
+
+setupHadoop(){
+    printMsg 'setupHadoop';
+    downloadFile $DOWNLOAD_LINK_HADOOP hadoop.tar.gz
+    mkdir $SETUP_DIR_HADOOP 
+    tar -xzf hadoop.tar.gz -C $SETUP_DIR_SBT --strip-components 1
+
+    tmpval="$PATH:$SETUP_DIR_HADOOP/bin"
+    setupEnvVar 'PATH' $tmpval
+
+    mkdir $SETUP_DIR_HADOOP/input
+    cp $SETUP_DIR_HADOOP/etc/hadoop/*.xml $SETUP_DIR_HADOOP/input
+
+    cat > $SETUP_DIR_HADOOP/etc/hadoop/core-site.xml << EOF
+<configuration>
+    <property>
+        <name>fs.defaultFS</name>
+        <value>hdfs://localhost:9000</value>
+    </property>
+</configuration>
+EOF
+    cat > $SETUP_DIR_HADOOP/etc/hadoop/hdfs-site.xml << EOF
+<configuration>
+    <property>
+        <name>dfs.replication</name>
+        <value>1</value>
+    </property>
+</configuration>
+EOF
+    
+}
+
+setupSSHKey(){
+    ssh-keygen -t rsa -P '' -f /home/ubuntu/.ssh/id_rsa
+    cat ~/.ssh/id_rsa.pub >> /home/ubuntu/.ssh/authorized_keys
+    chmod 0600 /home/ubuntu/.ssh/authorized_keys
 }
 
 setup () {
     printHeader 'SETUP SYSTEM'
     printMsg '- Create hadoop user'
-    mkdir $SETUP_DIR
-    cd $SETUP_DIR
+    mkdir $SETUP_DIR_ROOT
+    cd $SETUP_DIR_ROOT
     sudo adduser hadoop --gecos "Hadoop User,RoomNumber,WorkPhone,HomePhone" --disabled-password
     echo "hadoop:hadoop" | sudo chpasswd
 
-    ##############
+    #SETUP
     setupSofts     
     setupScala
     setupSpark
     setupSbt
+    setupHadoop
 
-    ##############
+    #FILES, STUFFS
     printHeader 'RUN DEMO'
     downloadFile https://www.gutenberg.org/ebooks/1661.txt.utf-8 SherlockHolmes.txt
 }

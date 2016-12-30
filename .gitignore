@@ -11,3 +11,4 @@ ubuntu-zesty-17.04-cloudimg-console.log
 .vagrant
 target
 SparkWordCountExample/bin
+SparkWordCountExample/.cache-main
